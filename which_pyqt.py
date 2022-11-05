@@ -1,1 +1,1 @@
-PYQT_VER = 'PYQT5'
+PYQT_VER = 'PYQT6'

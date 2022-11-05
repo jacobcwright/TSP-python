@@ -62,14 +62,10 @@ class Scenario:
 		self._difficulty = difficulty
 
 		if difficulty == "Normal" or difficulty == "Hard":
-			self._cities = [City( pt.x(), pt.y(), \
-								  random.uniform(0.0,1.0) \
-								) for pt in city_locations]
+			self._cities = [City( pt.x(), pt.y(), random.uniform(0.0,1.0)) for pt in city_locations]
 		elif difficulty == "Hard (Deterministic)":
 			random.seed( rand_seed )
-			self._cities = [City( pt.x(), pt.y(), \
-								  random.uniform(0.0,1.0) \
-								) for pt in city_locations]
+			self._cities = [City( pt.x(), pt.y(), random.uniform(0.0,1.0)) for pt in city_locations]
 		else:
 			self._cities = [City( pt.x(), pt.y() ) for pt in city_locations]
 
@@ -165,8 +161,7 @@ class City:
 			return np.inf
 
 		# Euclidean Distance
-		cost = math.sqrt( (other_city._x - self._x)**2 +
-						  (other_city._y - self._y)**2 )
+		cost = math.sqrt( (other_city._x - self._x)**2 + (other_city._y - self._y)**2 )
 
 		# For Medium and Hard modes, add in an asymmetric cost (in easy mode it is zero).
 		if not self._scenario._difficulty == 'Easy':

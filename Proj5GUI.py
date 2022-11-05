@@ -8,13 +8,10 @@ import time
 
 
 from which_pyqt import PYQT_VER
-if PYQT_VER == 'PYQT5':
-	from PyQt5.QtWidgets import *
-	from PyQt5.QtGui import *
-	from PyQt5.QtCore import *
-elif PYQT_VER == 'PYQT4':
-	from PyQt4.QtGui import *
-	from PyQt4.QtCore import *
+if PYQT_VER == 'PYQT6':
+	from PyQt6.QtWidgets import *
+	from PyQt6.QtGui import *
+	from PyQt6.QtCore import *
 else:
 	raise Exception('Unsupported Version of PyQt: {}'.format(PYQT_VER))
 
@@ -102,7 +99,7 @@ class PointLineView( QWidget ):
 
 	def paintEvent(self, event):
 		painter = QPainter(self)
-		painter.setRenderHint(QPainter.Antialiasing,True)
+		painter.setRenderHint(QPainter.RenderHint.Antialiasing,True)
 
 		xr = self.data_range['x']
 		yr = self.data_range['y']
@@ -110,9 +107,9 @@ class PointLineView( QWidget ):
 		h = self.height()
 		w2h_desired_ratio = (xr[1]-xr[0])/(yr[1]-yr[0])
 		if w / h < w2h_desired_ratio:
-			 scale = w / (xr[1]-xr[0])
+			scale = w / (xr[1]-xr[0])
 		else:
-			 scale = h / (yr[1]-yr[0])
+			scale = h / (yr[1]-yr[0])
 
 		tform = QTransform()
 		tform.translate(self.width()/2.0,self.height()/2.0)
@@ -159,12 +156,12 @@ class PointLineView( QWidget ):
 
 		painter.setTransform(tform)
 		font = QFont("Monospace")
-		font.setStyleHint(QFont.TypeWriter)
+		font.setStyleHint(QFont.StyleHint.TypeWriter)
 
 		R = 1.0E3
 		CITY_SIZE = 2.0 # DIAMETER
 		RECT = QRectF(-R,-R,2.0*R,2.0*R)
-		align = QTextOption( Qt.Alignment(Qt.AlignHCenter | Qt.AlignVCenter) )
+		align = QTextOption( Qt.AlignmentFlag(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter) )
 		for color in self.labelList:
 			c = QColor(color[0],color[1],color[2])
 			painter.setPen( c )
@@ -241,12 +238,12 @@ class Proj5GUI( QMainWindow ):
 
 
 
-	def addCities( self ):
+	def addCities(self):
 		cities = self._scenario.getCities()
 		self.view.clearEdges()
 		for city in cities:
-		   self.view.addLabel( QPointF(city._x, city._y), city._name, \
-							   labelColor=(128,128,128), xoffset=10.0 )
+			self.view.addLabel( QPointF(city._x, city._y), city._name, labelColor=(128,128,128), xoffset=10.0 )
+
 
 	def generateClicked(self):
 		self.generateNetwork()
@@ -274,9 +271,7 @@ class Proj5GUI( QMainWindow ):
 				labelColor = (64,64,255)
 				for edge in edges:
 					pt1,pt2,label = edge
-					self.view.addEdge( QPointF(pt1._x,pt1._y), \
-									   QPointF(pt2._x,pt2._y), \
-									   '{}'.format(label), edgeColor, labelColor )
+					self.view.addEdge( QPointF(pt1._x,pt1._y), QPointF(pt2._x,pt2._y), '{}'.format(label), edgeColor, labelColor )
 		else:
 			self.statusBar.showMessage('No Solution Found.')
 		self.view.repaint()
@@ -387,35 +382,33 @@ class Proj5GUI( QMainWindow ):
 
 
 		SCALE = 1.0
-		self.data_range		= { 'x':[-1.5*SCALE,1.5*SCALE], \
-								'y':[-SCALE,SCALE] }
-		self.view			= PointLineView( self.statusBar, \
-											 self.data_range )
+		self.data_range = { 'x':[-1.5*SCALE,1.5*SCALE], 'y':[-SCALE,SCALE] }
+		self.view = PointLineView( self.statusBar, self.data_range )
 		self.randSeedButton = QPushButton('Randomize Seed')
 		self.generateButton = QPushButton('Generate Scenario')
 		self.solveButton	= QPushButton('Solve TSP')
 
-		self.curSeed		= QLineEdit('20')
+		self.curSeed = QLineEdit('20')
 		self.curSeed.setFixedWidth(100)
-		self.size			= QLineEdit('15')
+		self.size = QLineEdit('15')
 		self.size.setFixedWidth(50)
-		self.timeLimit		= QLineEdit('60')
+		self.timeLimit = QLineEdit('60')
 		self.timeLimit.setFixedWidth(50)
-		self.numSolutions	= QLineEdit('--')
+		self.numSolutions = QLineEdit('--')
 		self.numSolutions.setFixedWidth(100)
-		self.tourCost		= QLineEdit('--')
+		self.tourCost = QLineEdit('--')
 		self.tourCost.setFixedWidth(100)
-		self.solvedIn		= QLineEdit('--')
+		self.solvedIn = QLineEdit('--')
 		self.solvedIn.setFixedWidth(200)
-		self.maxQSize		= QLineEdit('--')
+		self.maxQSize = QLineEdit('--')
 		#self.maxQSize.setFixedWidth(100)
-		self.totalStates	= QLineEdit('--')
+		self.totalStates = QLineEdit('--')
 		#self.totalStates.setFixedWidth(200)
-		self.prunedStates	= QLineEdit('--')
+		self.prunedStates = QLineEdit('--')
 		#self.prunedStates.setFixedWidth(200)
 
-		self.diffDropDown	= QComboBox(self)
-		self.algDropDown	= QComboBox(self)
+		self.diffDropDown = QComboBox(self)
+		self.algDropDown = QComboBox(self)
 
 		h = QHBoxLayout()
 		h.addWidget( self.view )
