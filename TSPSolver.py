@@ -94,7 +94,16 @@ class TSPSolver:
 	'''
 		
 	def branchAndBound( self, time_allowance=60.0 ):
+		# results['cost'] = 
+		# results['time'] = 
+		# results['count'] =
+		# results['soln'] = 
+		# results['max'] = 
+		# results['total'] =
+		# results['pruned'] =  
+		# return results
 		pass
+		
 
 
 
