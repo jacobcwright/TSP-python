@@ -102,6 +102,20 @@ class TSPSolver:
 		# results['total'] =
 		# results['pruned'] =  
 		# return results
+		''' bound = 0 initially (or is the bound of the parent state)
+			For each row in A
+				Subtract the minimum cell value in the row from all cells in the row
+				and add that value to the bound
+			Then for each column in A
+				Subtract the minimum cell value in the column from all cells in the column
+				and add that value to the bound
+			At that point every column and row will have at least one 0 entry
+			and we will have the correct bound summed up
+		'''
+
+
+
+
 		pass
 		
 
