@@ -80,6 +80,7 @@ class TSPSolver:
 	'''
 
 	def greedy( self,time_allowance=60.0 ):
+		# implement greedy algorithm here by myself. Don't wait for the group project.
 		pass
 	
 	
@@ -102,7 +103,8 @@ class TSPSolver:
 		# results['total'] =
 		# results['pruned'] =  
 		# return results
-		''' bound = 0 initially (or is the bound of the parent state)
+		''' 
+			bound = 0 initially (or is the bound of the parent state)
 			For each row in A
 				Subtract the minimum cell value in the row from all cells in the row
 				and add that value to the bound
