@@ -16,8 +16,6 @@ from TSPClasses import *
 import heapq
 import itertools
 
-
-
 class TSPSolver:
 	def __init__( self, gui_view ):
 		self._scenario = None
@@ -81,7 +79,6 @@ class TSPSolver:
 	'''
 
 	def greedy( self,time_allowance=60.0 ):
-		# implement greedy algorithm here by myself. Don't wait for the group project.
 		pass
 	
 	
@@ -109,12 +106,12 @@ class TSPSolver:
 		solutions = 0
 
 		reducedMatrix, lowestBound = self.getBaseMatrix(self.cities)
-		heapq.heappush(heap, (lowestBound, reducedMatrix, self.cities[0], self.cities[1:], lowestBound, [self.cities[0]._index]))
+		heapq.heappush(heap, tuple((lowestBound, reducedMatrix, self.cities[0], self.cities[1:], [self.cities[0]._index])))
 
 		start = time.time()
-		while heap and time.time() - start < time_allowance:
+		while len(heap) and time.time() - start < time_allowance:
 			next = heapq.heappop(heap)
-			if next[4] >= self.lowestBound:
+			if next[0] >= self.lowestBound:
 				pruned += 1
 				totalStates += 1
 				continue
@@ -133,7 +130,7 @@ class TSPSolver:
 								bestsFound += 1
 								print("Found a BSSF of {}".format(bssf.cost))
 						else:
-							if potential[4] < self.lowestBound:
+							if potential[0] < self.lowestBound:
 								heapq.heappush(heap, potential)
 								queueSize = max(queueSize, len(heap))
 								totalStates += 1
@@ -165,7 +162,6 @@ class TSPSolver:
 		
 	def fancy( self,time_allowance=60.0 ):
 		pass
-		
 
 
 	def getBaseMatrix(self, cities):
@@ -214,9 +210,8 @@ class TSPSolver:
 			reducedSum += colMin
 		
 		remainingCities = tupleCopy[3]
-		# remainingCities.remove(city._index)
-		del remainingCities[city._index]
+		remainingCities = [c for c in remainingCities if c._index != city._index]
 
-		cost = tupleCopy[4] + initialCost + reducedSum
+		cost = tupleCopy[0] + initialCost + reducedSum
 
-		return (cost, matrix, city, remainingCities, cost, tupleCopy[5] + [city._index])
+		return tuple((cost, matrix, city, remainingCities, tupleCopy[4] + [city._index]))
