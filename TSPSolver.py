@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from copy import deepcopy
 from which_pyqt import PYQT_VER
 if PYQT_VER == 'PYQT6':
 	from PyQt6.QtCore import QLineF, QPointF
@@ -139,27 +140,18 @@ class TSPSolver:
 							else:
 								pruned += 1
 								totalStates += 1
-
-
-
-
-
-
-
-
-
-		# results['cost'] = 
-		# results['time'] = 
-		# results['count'] =
-		# results['soln'] = 
-		# results['max'] = 
-		# results['total'] =
-		# results['pruned'] =  
-		# return results
-
-		pass
+			queueSize = max(queueSize, len(heap))
 		
-
+		end = time.time()
+		results = {}
+		results['cost'] = self.lowestBound
+		results['time'] = end - start
+		results['count'] = solutions
+		results['soln'] = bssf
+		results['max'] = queueSize
+		results['total'] = totalStates
+		results['pruned'] = pruned
+		return results
 
 
 	''' <summary>
@@ -198,5 +190,33 @@ class TSPSolver:
 		return matrix, lowestBound
 
 	def getMatrix(self, city, givenTuple):
+		tupleCopy = deepcopy(givenTuple)
+		matrix = tupleCopy[1]
+		initialCost = matrix[tupleCopy[2]._index][city._index]
+		reducedSum = 0
 
-		return 
+		matrix[tupleCopy[2]._index] = np.inf
+		matrix[:, tupleCopy[2]._index] = np.inf
+		matrix[city._index][tupleCopy[2]._index] = np.inf
+
+		for row in range(matrix.shape[0]):
+			rowMin = np.min(matrix[row])
+			if rowMin == np.inf:
+				continue
+			matrix[row][city._index] -= rowMin
+			reducedSum += rowMin
+
+		for col in range(matrix.shape[1]):
+			colMin = np.min(matrix[:, col])
+			if colMin == np.inf:
+				continue
+			matrix[:, col] -= colMin
+			reducedSum += colMin
+		
+		remainingCities = tupleCopy[3]
+		# remainingCities.remove(city._index)
+		del remainingCities[city._index]
+
+		cost = tupleCopy[4] + initialCost + reducedSum
+
+		return (cost, matrix, city, remainingCities, cost, tupleCopy[5] + [city._index])
