@@ -14,13 +14,15 @@ import time
 import numpy as np
 from TSPClasses import *
 import heapq
-import itertools
+from itertools import count
+tiebreaker = count()
+
 
 class TSPSolver:
-	def __init__( self, gui_view ):
+	def __init__(self, gui_view):
 		self._scenario = None
 
-	def setupWithScenario( self, scenario ):
+	def setupWithScenario(self, scenario):
 		self._scenario = scenario
 
 
@@ -35,7 +37,7 @@ class TSPSolver:
 		algorithm</returns> 
 	'''
 	
-	def defaultRandomTour( self, time_allowance=60.0 ):
+	def defaultRandomTour(self, time_allowance=60.0):
 		results = {}
 		cities = self._scenario.getCities()
 		ncities = len(cities)
@@ -93,20 +95,22 @@ class TSPSolver:
 	'''
 		
 	def branchAndBound(self, time_allowance=60.0):
-		bssf = self.defaultRandomTour(time_allowance)['soln']
-		print("Random Algorithms found a BSSF of {}".format(bssf.cost))
 		self.cities = self._scenario.getCities()
 		self.numCities = len(self.cities)
-		self.lowestBound = bssf.cost
 		heap = []
 		bestsFound = 0
 		queueSize = 0
 		totalStates = 0
 		pruned = 0
 		solutions = 0
+		bssf = self.defaultRandomTour(time_allowance)['soln']
+		self.lowestBound = bssf.cost
 
 		reducedMatrix, lowestBound = self.getBaseMatrix(self.cities)
-		heapq.heappush(heap, tuple((lowestBound, reducedMatrix, self.cities[0], self.cities[1:], [self.cities[0]._index])))
+		heapq.heappush(heap, (lowestBound, next(tiebreaker), reducedMatrix, self.cities[0], self.cities[1:], [self.cities[0]._index]))
+
+		queueSize += 1
+		totalStates += 1
 
 		start = time.time()
 		while len(heap) and time.time() - start < time_allowance:
@@ -116,14 +120,14 @@ class TSPSolver:
 				totalStates += 1
 				continue
 			else:
-				for city in nextCity[3]:
-					if self._scenario._edge_exists[nextCity[2]._index][city._index]:
+				for city in nextCity[4]:
+					if self._scenario._edge_exists[nextCity[3]._index][city._index]:
 						potential = self.getMatrix(city, nextCity)
 
 						# if we have a completed tour
-						if len(potential[3]) == 0:
+						if len(potential[4]) == 0:
 							solutions += 1
-							tour = potential[6]
+							tour = potential[5]
 							bssf = TSPSolution([self.cities[i] for i in tour])
 							if bssf.cost < self.lowestBound:
 								self.lowestBound = bssf.cost
@@ -159,7 +163,7 @@ class TSPSolver:
 		algorithm</returns> 
 	'''
 		
-	def fancy( self,time_allowance=60.0 ):
+	def fancy(self, time_allowance=60.0):
 		pass
 
 	def getBaseMatrix(self, cities):
@@ -184,13 +188,13 @@ class TSPSolver:
 
 	def getMatrix(self, city, givenTuple):
 		tupleCopy = deepcopy(givenTuple)
-		matrix = tupleCopy[1]
-		initialCost = matrix[tupleCopy[2]._index][city._index]
+		matrix = tupleCopy[2]
+		initialCost = matrix[tupleCopy[3]._index][city._index]
 		reducedSum = 0
 
-		matrix[tupleCopy[2]._index] = np.inf
-		matrix[:, tupleCopy[2]._index] = np.inf
-		matrix[city._index][tupleCopy[2]._index] = np.inf
+		matrix[tupleCopy[3]._index] = np.inf
+		matrix[:, tupleCopy[3]._index] = np.inf
+		matrix[city._index][tupleCopy[3]._index] = np.inf
 
 		for row in range(matrix.shape[0]):
 			rowMin = np.min(matrix[row])
@@ -206,9 +210,9 @@ class TSPSolver:
 			matrix[:, col] -= colMin
 			reducedSum += colMin
 		
-		remainingCities = tupleCopy[3]
+		remainingCities = tupleCopy[4]
 		remainingCities = [c for c in remainingCities if c._index != city._index]
 
 		cost = tupleCopy[0] + initialCost + reducedSum
 
-		return tuple((cost, matrix, city, remainingCities, tupleCopy[4] + [city._index]))
+		return (cost, next(tiebreaker), matrix, city, remainingCities, tupleCopy[5] + [city._index])
