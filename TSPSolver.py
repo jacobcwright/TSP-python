@@ -95,6 +95,59 @@ class TSPSolver:
 	'''
 		
 	def branchAndBound( self, time_allowance=60.0 ):
+		bssf = self.defaultRandomTour(time_allowance)['soln']
+		print("Random Algorithms found a BSSF of {}".format(bssf.cost))
+		self.cities = self._scenario.getCities()
+		self.numCities = len(self.cities)
+		self.lowestBound = bssf.cost
+		heap = []
+		bestsFound = 0
+		queueSize = 0
+		totalStates = 0
+		pruned = 0
+		solutions = 0
+
+		reducedMatrix, lowestBound = self.getBaseMatrix(self.cities)
+		heapq.heappush(heap, (lowestBound, reducedMatrix, self.cities[0], self.cities[1:], lowestBound, [self.cities[0]._index]))
+
+		start = time.time()
+		while heap and time.time() - start < time_allowance:
+			next = heapq.heappop(heap)
+			if next[4] >= self.lowestBound:
+				pruned += 1
+				totalStates += 1
+				continue
+			else:
+				for city in next[3]:
+					if self._scenario._edge_exists[next[2]._index][city._index]:
+						potential = self.getMatrix(city, next)
+
+						# if we have a completed tour
+						if len(potential[3]) == 0:
+							solutions += 1
+							tour = potential[6]
+							bssf = TSPSolution([self.cities[i] for i in tour])
+							if bssf.cost < self.lowestBound:
+								self.lowestBound = bssf.cost
+								bestsFound += 1
+								print("Found a BSSF of {}".format(bssf.cost))
+						else:
+							if potential[4] < self.lowestBound:
+								heapq.heappush(heap, potential)
+								queueSize = max(queueSize, len(heap))
+								totalStates += 1
+							else:
+								pruned += 1
+								totalStates += 1
+
+
+
+
+
+
+
+
+
 		# results['cost'] = 
 		# results['time'] = 
 		# results['count'] =
@@ -103,20 +156,6 @@ class TSPSolver:
 		# results['total'] =
 		# results['pruned'] =  
 		# return results
-		''' 
-			bound = 0 initially (or is the bound of the parent state)
-			For each row in A
-				Subtract the minimum cell value in the row from all cells in the row
-				and add that value to the bound
-			Then for each column in A
-				Subtract the minimum cell value in the column from all cells in the column
-				and add that value to the bound
-			At that point every column and row will have at least one 0 entry
-			and we will have the correct bound summed up
-		'''
-
-
-
 
 		pass
 		
@@ -137,4 +176,27 @@ class TSPSolver:
 		
 
 
+	def getBaseMatrix(self, cities):
+		matrix = np.full((self.numCities, self.numCities), np.inf)
 
+		for i in range(self.numCities):
+			for j in range(self.numCities):
+				if i != j:
+					matrix[i][j] = cities[i].costTo(cities[j])
+
+		lowestBound = 0
+
+		for i in range(self.numCities):
+			lowestBound += np.min(matrix[i])
+			matrix[i] -= np.min(matrix[i])
+
+		for i in range(self.numCities):
+			lowestBound += np.min(matrix[:, i])
+			matrix[:, i] -= np.min(matrix[:, i])
+
+
+		return matrix, lowestBound
+
+	def getMatrix(self, city, givenTuple):
+
+		return 
