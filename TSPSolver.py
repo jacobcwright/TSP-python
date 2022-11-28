@@ -78,7 +78,7 @@ class TSPSolver:
 		algorithm</returns> 
 	'''
 
-	def greedy( self,time_allowance=60.0 ):
+	def greedy(self, time_allowance=60.0):
 		pass
 	
 	
@@ -92,7 +92,7 @@ class TSPSolver:
 		max queue size, total number of states created, and number of pruned states.</returns> 
 	'''
 		
-	def branchAndBound( self, time_allowance=60.0 ):
+	def branchAndBound(self, time_allowance=60.0):
 		bssf = self.defaultRandomTour(time_allowance)['soln']
 		print("Random Algorithms found a BSSF of {}".format(bssf.cost))
 		self.cities = self._scenario.getCities()
@@ -110,15 +110,15 @@ class TSPSolver:
 
 		start = time.time()
 		while len(heap) and time.time() - start < time_allowance:
-			next = heapq.heappop(heap)
-			if next[0] >= self.lowestBound:
+			nextCity = heapq.heappop(heap)
+			if nextCity[0] >= self.lowestBound:
 				pruned += 1
 				totalStates += 1
 				continue
 			else:
-				for city in next[3]:
-					if self._scenario._edge_exists[next[2]._index][city._index]:
-						potential = self.getMatrix(city, next)
+				for city in nextCity[3]:
+					if self._scenario._edge_exists[nextCity[2]._index][city._index]:
+						potential = self.getMatrix(city, nextCity)
 
 						# if we have a completed tour
 						if len(potential[3]) == 0:
@@ -150,7 +150,6 @@ class TSPSolver:
 		results['pruned'] = pruned
 		return results
 
-
 	''' <summary>
 		This is the entry point for the algorithm you'll write for your group project.
 		</summary>
@@ -162,7 +161,6 @@ class TSPSolver:
 		
 	def fancy( self,time_allowance=60.0 ):
 		pass
-
 
 	def getBaseMatrix(self, cities):
 		matrix = np.full((self.numCities, self.numCities), np.inf)
@@ -181,7 +179,6 @@ class TSPSolver:
 		for i in range(self.numCities):
 			lowestBound += np.min(matrix[:, i])
 			matrix[:, i] -= np.min(matrix[:, i])
-
 
 		return matrix, lowestBound
 
