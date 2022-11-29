@@ -36,7 +36,7 @@ class TSPSolver:
 		solution found, and three null values for fields not used for this 
 		algorithm</returns> 
 	'''
-	
+	# worst case O(n!) time and O(n) space
 	def defaultRandomTour(self, time_allowance=60.0):
 		results = {}
 		cities = self._scenario.getCities()
@@ -67,6 +67,17 @@ class TSPSolver:
 		results['pruned'] = None
 		return results
 
+	''' <summary>
+		This is the entry point for the algorithm you'll write for your group project.
+		</summary>
+		<returns>results dictionary for GUI that contains three ints: cost of best solution, 
+		time spent to find best solution, total number of solutions found during search, the 
+		best solution found.  You may use the other three field however you like.
+		algorithm</returns> 
+	'''
+		
+	def fancy(self, time_allowance=60.0):
+		pass
 
 	''' <summary>
 		This is the entry point for the greedy solver, which you must implement for 
@@ -83,8 +94,6 @@ class TSPSolver:
 	def greedy(self, time_allowance=60.0):
 		pass
 	
-	
-	
 	''' <summary>
 		This is the entry point for the branch-and-bound algorithm that you will implement
 		</summary>
@@ -93,9 +102,10 @@ class TSPSolver:
 		not include the initial BSSF), the best solution found, and three more ints: 
 		max queue size, total number of states created, and number of pruned states.</returns> 
 	'''
-		
+	# O(k*n^2) time and space where k is the number of states and n is the number of cities
+	# This is ignoring the time it takes to get the initial bssf from random tour.
 	def branchAndBound(self, time_allowance=60.0):
-		# initialize variables
+		# initialize variables (O(1))
 		self.cities = self._scenario.getCities()
 		self.numCities = len(self.cities)
 		heap = []
@@ -105,7 +115,7 @@ class TSPSolver:
 		pruned = 0
 		solutions = 0
 		
-		# get initial bssf using randomTour
+		# get initial bssf using randomTour, potentially (O(n!))
 		bssf = self.defaultRandomTour(time_allowance)['soln']
 		solutions += 1
 		self.lowestBound = bssf.cost
@@ -118,6 +128,7 @@ class TSPSolver:
 		totalStates += 1
 
 		start = time.time()
+		# runs until time runs out or the heap is empty (k)
 		while len(heap) and time.time() - start < time_allowance:
 			# get next cheapest city
 			nextCity = heapq.heappop(heap)
@@ -131,13 +142,14 @@ class TSPSolver:
 				# if the cost is less than the current best, try to add the next city
 				for city in nextCity[4]:
 					if self._scenario._edge_exists[nextCity[3]._index][city._index]:
-						# get potential new path
+						# get potential new path -- O(n) time and O(n^2) space
 						potential = self.getMatrix(city, nextCity)
 
 						# if we have a completed tour
 						if len(potential[4]) == 0:
 							solutions += 1
 							tour = potential[5]
+							# O(n) time and O(n) space
 							temp = TSPSolution([self.cities[i] for i in tour])
 							# if the cost is less than the current best, update the best
 							if temp.cost < self.lowestBound:
@@ -169,22 +181,13 @@ class TSPSolver:
 		results['pruned'] = pruned
 		return results
 
-	''' <summary>
-		This is the entry point for the algorithm you'll write for your group project.
-		</summary>
-		<returns>results dictionary for GUI that contains three ints: cost of best solution, 
-		time spent to find best solution, total number of solutions found during search, the 
-		best solution found.  You may use the other three field however you like.
-		algorithm</returns> 
-	'''
-		
-	def fancy(self, time_allowance=60.0):
-		pass
 
+
+	# O(n^2) time and space
 	def getBaseMatrix(self, cities):
 		matrix = np.full((self.numCities, self.numCities), np.inf)
 
-		# initialize matrix
+		# initialize matrix (O(n^2))
 		for i in range(self.numCities):
 			for j in range(self.numCities):
 				if i != j:
@@ -192,18 +195,19 @@ class TSPSolver:
 
 		lowestBound = 0
 
-		# reduce rows
+		# reduce rows (O(n))
 		for i in range(self.numCities):
 			lowestBound += np.min(matrix[i])
 			matrix[i] -= np.min(matrix[i])
 
-		# reduce columns
+		# reduce columns (O(n))
 		for i in range(self.numCities):
 			lowestBound += np.min(matrix[:, i])
 			matrix[:, i] -= np.min(matrix[:, i])
 
 		return matrix, lowestBound
 
+	# O(n) time and O(n^2) space
 	def getMatrix(self, city, givenTuple):
 		# copy current partial path tuple
 		tupleCopy = deepcopy(givenTuple)
@@ -216,7 +220,7 @@ class TSPSolver:
 		matrix[:, city._index] = np.inf
 		matrix[city._index][tupleCopy[3]._index] = np.inf
 
-		# reduce rows
+		# reduce rows (O(n) time)
 		for row in range(matrix.shape[0]):
 			rowMin = np.min(matrix[row])
 			if rowMin == np.inf:
@@ -224,7 +228,7 @@ class TSPSolver:
 			matrix[row][city._index] -= rowMin
 			reducedSum += rowMin
 
-		# reduce columns
+		# reduce columns (O(n) time)
 		for col in range(matrix.shape[1]):
 			colMin = np.min(matrix[:, col])
 			if colMin == np.inf:
@@ -233,6 +237,7 @@ class TSPSolver:
 			reducedSum += colMin
 		
 		# remove visited city from remaining cities		
+		# (O(n) time)
 		remainingCities = tupleCopy[4]
 		remainingCities = [c for c in remainingCities if c._index != city._index]
 
