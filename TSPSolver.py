@@ -130,7 +130,6 @@ class TSPSolver:
 			else:
 				# if the cost is less than the current best, try to add the next city
 				for city in nextCity[4]:
-
 					if self._scenario._edge_exists[nextCity[3]._index][city._index]:
 						# get potential new path
 						potential = self.getMatrix(city, nextCity)
@@ -149,10 +148,12 @@ class TSPSolver:
 						# if we have not completed the tour, add the city to the heap
 						else:
 							if potential[0] < self.lowestBound:
+								# lower than bound, so continue exploring
 								heapq.heappush(heap, potential)
 								queueSize = max(queueSize, len(heap))
 								totalStates += 1
 							else:
+								# higher than bound, so prune
 								pruned += 1
 								totalStates += 1
 			queueSize = max(queueSize, len(heap))
