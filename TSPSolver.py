@@ -95,6 +95,7 @@ class TSPSolver:
 	'''
 		
 	def branchAndBound(self, time_allowance=60.0):
+		# initialize variables
 		self.cities = self._scenario.getCities()
 		self.numCities = len(self.cities)
 		heap = []
@@ -103,26 +104,35 @@ class TSPSolver:
 		totalStates = 0
 		pruned = 0
 		solutions = 0
+		
+		# get initial bssf using randomTour
 		bssf = self.defaultRandomTour(time_allowance)['soln']
 		solutions += 1
 		self.lowestBound = bssf.cost
 
-		reducedMatrix, lowestBound = self.getBaseMatrix(self.cities)
-		heapq.heappush(heap, (lowestBound, next(tiebreaker), reducedMatrix, self.cities[0], self.cities[1:], [self.cities[0]._index]))
+		reducedMatrix, cost = self.getBaseMatrix(self.cities)
+		# Tuple is (cost, counter, matrix, currentCity, remainingCities, path) where counter is used to break ties
+		heapq.heappush(heap, (cost, next(tiebreaker), reducedMatrix, self.cities[0], self.cities[1:], [self.cities[0]._index]))
 
 		queueSize += 1
 		totalStates += 1
 
 		start = time.time()
 		while len(heap) and time.time() - start < time_allowance:
+			# get next cheapest city
 			nextCity = heapq.heappop(heap)
+
+			# if the cost is greater than the current best, prune
 			if nextCity[0] >= self.lowestBound:
 				pruned += 1
 				totalStates += 1
 				continue
 			else:
+				# if the cost is less than the current best, try to add the next city
 				for city in nextCity[4]:
+
 					if self._scenario._edge_exists[nextCity[3]._index][city._index]:
+						# get potential new path
 						potential = self.getMatrix(city, nextCity)
 
 						# if we have a completed tour
@@ -130,10 +140,13 @@ class TSPSolver:
 							solutions += 1
 							tour = potential[5]
 							temp = TSPSolution([self.cities[i] for i in tour])
+							# if the cost is less than the current best, update the best
 							if temp.cost < self.lowestBound:
 								self.lowestBound = temp.cost
 								bestsFound += 1
 								bssf = temp
+
+						# if we have not completed the tour, add the city to the heap
 						else:
 							if potential[0] < self.lowestBound:
 								heapq.heappush(heap, potential)
@@ -170,6 +183,7 @@ class TSPSolver:
 	def getBaseMatrix(self, cities):
 		matrix = np.full((self.numCities, self.numCities), np.inf)
 
+		# initialize matrix
 		for i in range(self.numCities):
 			for j in range(self.numCities):
 				if i != j:
@@ -177,10 +191,12 @@ class TSPSolver:
 
 		lowestBound = 0
 
+		# reduce rows
 		for i in range(self.numCities):
 			lowestBound += np.min(matrix[i])
 			matrix[i] -= np.min(matrix[i])
 
+		# reduce columns
 		for i in range(self.numCities):
 			lowestBound += np.min(matrix[:, i])
 			matrix[:, i] -= np.min(matrix[:, i])
@@ -188,15 +204,18 @@ class TSPSolver:
 		return matrix, lowestBound
 
 	def getMatrix(self, city, givenTuple):
+		# copy current partial path tuple
 		tupleCopy = deepcopy(givenTuple)
 		matrix = tupleCopy[2]
 		initialCost = matrix[tupleCopy[3]._index][city._index]
 		reducedSum = 0
 
+		# set row and column of city to infinity
 		matrix[tupleCopy[3]._index] = np.inf
 		matrix[:, city._index] = np.inf
 		matrix[city._index][tupleCopy[3]._index] = np.inf
 
+		# reduce rows
 		for row in range(matrix.shape[0]):
 			rowMin = np.min(matrix[row])
 			if rowMin == np.inf:
@@ -204,6 +223,7 @@ class TSPSolver:
 			matrix[row][city._index] -= rowMin
 			reducedSum += rowMin
 
+		# reduce columns
 		for col in range(matrix.shape[1]):
 			colMin = np.min(matrix[:, col])
 			if colMin == np.inf:
@@ -211,9 +231,12 @@ class TSPSolver:
 			matrix[:, col] -= colMin
 			reducedSum += colMin
 		
+		# remove visited city from remaining cities		
 		remainingCities = tupleCopy[4]
 		remainingCities = [c for c in remainingCities if c._index != city._index]
 
+		# get new cost
 		cost = tupleCopy[0] + initialCost + reducedSum
 
+		# return tuple for partial path generated from visiting city
 		return (cost, next(tiebreaker), matrix, city, remainingCities, tupleCopy[5] + [city._index])
