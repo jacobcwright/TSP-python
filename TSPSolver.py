@@ -104,6 +104,7 @@ class TSPSolver:
 		pruned = 0
 		solutions = 0
 		bssf = self.defaultRandomTour(time_allowance)['soln']
+		solutions += 1
 		self.lowestBound = bssf.cost
 
 		reducedMatrix, lowestBound = self.getBaseMatrix(self.cities)
@@ -128,11 +129,11 @@ class TSPSolver:
 						if len(potential[4]) == 0:
 							solutions += 1
 							tour = potential[5]
-							bssf = TSPSolution([self.cities[i] for i in tour])
-							if bssf.cost < self.lowestBound:
-								self.lowestBound = bssf.cost
+							temp = TSPSolution([self.cities[i] for i in tour])
+							if temp.cost < self.lowestBound:
+								self.lowestBound = temp.cost
 								bestsFound += 1
-								print("Found a BSSF of {}".format(bssf.cost))
+								bssf = temp
 						else:
 							if potential[0] < self.lowestBound:
 								heapq.heappush(heap, potential)
@@ -193,7 +194,7 @@ class TSPSolver:
 		reducedSum = 0
 
 		matrix[tupleCopy[3]._index] = np.inf
-		matrix[:, tupleCopy[3]._index] = np.inf
+		matrix[:, city._index] = np.inf
 		matrix[city._index][tupleCopy[3]._index] = np.inf
 
 		for row in range(matrix.shape[0]):
