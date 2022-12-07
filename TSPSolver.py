@@ -292,3 +292,34 @@ class TSPSolver:
 
 		# return tuple for partial path generated from visiting city
 		return (cost, next(tiebreaker), matrix, city, remainingCities, tupleCopy[5] + [city._index])
+
+
+	# get MST using Prim's algorithm
+	# O(E logN) time and O(E) space, where E is the number of edges and N is the number of cities
+	def getMST(cities):
+		# MST is an array of tuples (city1, city2, cost)
+		mst = []
+		numCities = len(cities)
+		visited = [False] * numCities
+		visited[0] = True
+		numEdges = 0
+
+		# in minimum spanning tree, there are n - 1 edges
+		while numEdges < numCities - 1:
+			minEdge = np.inf
+			minCity = None
+			minIndex = None
+
+			for i in range(numCities):
+				if visited[i]:
+					for j in range(numCities):
+						if not visited[j] and cities[i].costTo(cities[j]) < minEdge:
+							minEdge = cities[i].costTo(cities[j])
+							minCity = cities[j]
+							minIndex = j
+
+			mst.append(tuple((cities[i], minCity, minEdge)))
+			visited[minIndex] = True
+			numEdges += 1
+
+		return mst
