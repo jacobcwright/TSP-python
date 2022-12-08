@@ -68,18 +68,6 @@ class TSPSolver:
 		return results
 
 	''' <summary>
-		This is the entry point for the algorithm you'll write for your group project.
-		</summary>
-		<returns>results dictionary for GUI that contains three ints: cost of best solution, 
-		time spent to find best solution, total number of solutions found during search, the 
-		best solution found.  You may use the other three field however you like.
-		algorithm</returns> 
-	'''
-		
-	def fancy(self, time_allowance=60.0):
-		pass
-
-	''' <summary>
 		This is the entry point for the greedy solver, which you must implement for 
 		the group project (but it is probably a good idea to just do it for the branch-and
 		bound project as a way to get your feet wet).  Note this could be used to find your
@@ -294,6 +282,33 @@ class TSPSolver:
 		return (cost, next(tiebreaker), matrix, city, remainingCities, tupleCopy[5] + [city._index])
 
 
+	''' <summary>
+	This is the entry point for the algorithm you'll write for your group project.
+	</summary>
+	<returns>results dictionary for GUI that contains three ints: cost of best solution, 
+	time spent to find best solution, total number of solutions found during search, the 
+	best solution found.  You may use the other three field however you like.
+	algorithm</returns> 
+	'''
+	def fancy(self, time_allowance=60.0):
+		results = {}
+
+		self.cities = self._scenario.getCities()
+		# get MST using Prim's algorithm
+		mst = self.getMST(self.cities)
+
+		# get odd degree nodes
+		oddDegNodes = self.getOddDegreeNodes(mst)
+
+		# get minimum weight perfect matching
+
+		# get Eulerian tour
+
+		# get Hamiltonian tour
+
+		return results
+
+
 	# get MST using Prim's algorithm
 	# O(E logN) time and O(E) space, where E is the number of edges and N is the number of cities
 	def getMST(cities):
@@ -323,3 +338,24 @@ class TSPSolver:
 			numEdges += 1
 
 		return mst
+
+	# Takes in a list of edges where each 
+	# edge is a tuple (index of start city, 
+	# index of destination city) and returns 
+	# a list of the city indexes that contain 
+	# an odd degree of edges. 
+	def getOddDegreeNodes(self, mst):
+		# Get the degrees for each node (city)
+		nodeDegrees = np.zeros(len(self._scenario.getCities()))
+
+		for edge in mst:
+			nodeDegrees[edge[0]] += 1  # The city has an outgoing edge
+			nodeDegrees[edge[1]] += 1  # The city has an incoming edge
+
+		# Filter out cities with an even degree
+		oddDegreeNodes = []
+		for index in range(len(nodeDegrees)):
+			if nodeDegrees[index] % 2 != 0:
+				oddDegreeNodes.append(index)
+
+		return oddDegreeNodes
