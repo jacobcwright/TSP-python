@@ -325,6 +325,44 @@ class TSPSolver:
 		results['pruned'] = 0
 		return results
 
+	# Add an edge between U and V in tree
+	def AddEdge(self, mst, u, v, cities):
+		minEdge = cities[u].costTo(cities[v])
+		# Edge from u to v
+		mst.append((u, v, minEdge))
+		# Edge from V to U
+		# mst.append((v,u,minEdge))
+
+		# No return just add to MST?
+
+
+	# Function that finds the maximum
+	# matching of the DFS
+	def Matching_Dfs(self, mst,u, p):
+		# global max_matching
+		# make global, or just create a driver function and pass by reference?
+		max_matching = 0
+		N = 10000
+		used = [0 for i in range(N)] # need 10,000?
+
+		for i in range(len(mst[u])):
+			# Go further as we are not
+			# allowed to go towards
+			# its parent
+			if (mst[u][i] != p):
+				self.Matching_Dfs(mst[u][i], u)
+		# If U and its parent P is
+		# not taken then we must
+		# take &mark them as taken
+		if (not used[u] and not used[p] and p != 0):
+			# Increment size of edge set
+			max_matching += 1
+			used[u] = 1
+			used[p] = 1
+		
+		# return?
+
+
 	'''
 	get MST using Prim's algorithm
 	O(E logN) time and O(E) space, where E is the number of edges and N is the number of cities
@@ -336,6 +374,7 @@ class TSPSolver:
 		visited = [False] * numCities
 		visited[0] = True
 		numEdges = 0
+
 
 		# in minimum spanning tree, there are n - 1 edges
 		while numEdges < numCities - 1:
@@ -356,6 +395,7 @@ class TSPSolver:
 			numEdges += 1
 
 		return mst
+
 
 	'''
 	Takes in a list of edges where each 
@@ -381,6 +421,7 @@ class TSPSolver:
 				oddDegreeNodes.append(index)
 
 		return oddDegreeNodes
+
 
 	# degreeCount(vertex,listOfEdges):
     # degree = 0
