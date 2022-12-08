@@ -282,6 +282,7 @@ class TSPSolver:
 		return (cost, next(tiebreaker), matrix, city, remainingCities, tupleCopy[5] + [city._index])
 
 
+	# MST heuristic
 	''' <summary>
 	This is the entry point for the algorithm you'll write for your group project.
 	</summary>
@@ -290,40 +291,59 @@ class TSPSolver:
 	best solution found.  You may use the other three field however you like.
 	algorithm</returns> 
 	'''
-	def fancy(self, time_allowance=60.0):
-		results = {}
+	# def fancy(self, time_allowance=60.0):
+	# 	results = {}
 
-		self.cities = self._scenario.getCities()
-		start = time.time()
+	# 	self.cities = self._scenario.getCities()
+	# 	start = time.time()
 
-		# get MST using Prim's algorithm
-		mst = self.getMST(self.cities)
+	# 	# get MST using Prim's algorithm
+	# 	mst = self.getMST(self.cities)
 
-		# get odd degree nodes
-		oddDegNodes = self.getOddDegreeNodes(mst)
+	# 	bssf = TSPSolution([self.cities[0]])
+	# 	bssf.cost = np.inf
+	# 	for i in range(len(mst)):
+	# 		tour = self.mst_dfs(mst, i)
+	# 		temp = TSPSolution(tour)
+	# 		if temp.cost < bssf.cost:
+	# 			bssf = temp
 
-		# get minimum weight perfect matching
-		# TODO: implement
-		matching = self.getMatching(oddDegNodes)
+	# 	end = time.time()
+	# 	ans = bssf
+	# 	results['cost'] = ans.cost
+	# 	results['soln'] = ans
+	# 	results['time'] = end - start
+	# 	results['count'] = 1
+	# 	results['max'] = 0
+	# 	results['total'] = 0
+	# 	results['pruned'] = 0
+	# 	return results
 
-		# get Eulerian tour
-		eulerianTour = self.eulerianTour(matching)
+		# # get odd degree nodes
+		# oddDegNodes = self.getOddDegreeNodes(mst)
 
-		# get Hamiltonian tour
-		# TODO: implement
-		hamiltonianTour = self.getHamiltonianTour(tour)
+		# # get minimum weight perfect matching
+		# # TODO: implement
+		# matching = self.getMatching(oddDegNodes)
 
-		end = time.time()
+		# # get Eulerian tour
+		# eulerianTour = self.eulerianTour(matching)
 
-		tour = TSPSolution(hamiltonianTour)
-		results['cost'] = tour.costOfRoute()
-		results['soln'] = tour
-		results['time'] = end - start
-		results['count'] = 1
-		results['max'] = 0
-		results['total'] = 0
-		results['pruned'] = 0
-		return results
+		# # get Hamiltonian tour
+		# # TODO: implement
+		# hamiltonianTour = self.getHamiltonianTour(tour)
+
+		# end = time.time()
+
+		# tour = TSPSolution(hamiltonianTour)
+		# results['cost'] = tour.costOfRoute()
+		# results['soln'] = tour
+		# results['time'] = end - start
+		# results['count'] = 1
+		# results['max'] = 0
+		# results['total'] = 0
+		# results['pruned'] = 0
+		# return results
 
 	# Add an edge between U and V in tree
 	def AddEdge(self, mst, u, v, cities):
@@ -391,8 +411,9 @@ class TSPSolver:
 							minIndex = j
 
 			mst.append(tuple((cities[i], minCity, minEdge)))
+			mst.append(tuple((minCity, cities[i], minEdge)))
 			visited[minIndex] = True
-			numEdges += 1
+			numEdges += 2
 
 		return mst
 
@@ -475,3 +496,120 @@ class TSPSolver:
 						break
 				mstCopy.pop(idEdge)
 		return tour
+
+
+	def mst_dfs(self, mst, startIndex):
+		# given the mst as a list of tuples (city1, city2, cost)
+		# return a dfs of the mst using preorder traversal as a list of cities (city1, city2, city3, ...)
+		visited = set()
+		tour = []
+		def dfs(self, mst, city):
+			if not city:
+				return
+			visited.add(city)
+			tour.append(city)
+			for edge in mst:
+				if edge[0] == city and edge[1] not in visited:
+					dfs(self, mst, edge[1])
+				elif edge[1] == city and edge[0] not in visited:
+					dfs(self, mst, edge[0])
+		dfs(self, mst, mst[startIndex][0])
+		return tour
+
+
+	# Greedy heuristic for fancy
+	def greedyHelper(self, time_allowance=60.0):
+		bssf = None
+		self.cities = self._scenario.getCities()
+		self.numCities = len(self.cities)
+		# results = {}
+		solutions = 0
+
+		start = time.time()
+		for i in range(self.numCities):
+			city = self.cities[i]
+			path = []
+			visited = set()
+			path.append(city)
+			visited.add(city)
+
+			while len(path) < self.numCities:
+				# get the next city
+				nextCity = self.getNextCity(city, filter(lambda c: c not in visited, self.cities))
+				if city.costTo(nextCity) == np.inf:
+					break
+				path.append(nextCity)
+				visited.add(nextCity)
+				city = nextCity
+
+			if len(path) != self.numCities:
+				continue
+
+			solutions += 1
+			
+			if bssf is None:
+				bssf = TSPSolution(path)
+				continue
+			
+			temp = TSPSolution(path)
+			if bssf.cost > temp.cost:
+				bssf = temp
+				
+		return bssf
+
+	# fancy 2-opt heuristic
+	def fancy(self, time_allowance=60.0):
+		numCities = len(self._scenario.getCities())
+		results = {}
+		start = time.time()
+
+		bssf = self.greedyHelper()
+		print(f"bssf is {bssf}")
+		solutions = 1
+		
+		# 2-opt
+		for i in range(numCities):
+			city1 = random.randint(0, numCities - 1)
+			city2 = random.randint(0, numCities - 1)
+			# make sure city1 is less than city2
+			if city1 > city2:
+				temp = city1
+				city1 = city2
+				city2 = temp
+			new_path = self.TwoOptSwap(city1, city2, bssf.route)
+			print(f"new_path is {new_path}")
+			temp = TSPSolution(new_path)
+			solutions += 1
+			if temp.cost < bssf.cost:
+				bssf = temp
+				print(f"bssf is {bssf}")
+
+		
+		end = time.time()
+		results['cost'] = bssf.cost
+		results['time'] = end - start
+		results['count'] = solutions
+		results['soln'] = bssf
+		results['max'] = None
+		results['total'] = None
+		results['pruned'] = None
+		return results
+
+	def TwoOptSwap(self, i, k, tour):
+		size = len(tour)
+		newTour = []
+
+		for j in range(0, i-1):
+			if j < size and j >= 0:
+				newTour.append(tour[j])
+
+		for j in range(k, i-1, -1):
+			if j < size and j >= 0:
+				newTour.append(tour[j])
+
+		for j in range(k + 1, size):
+			if j < size and j >= 0:
+				newTour.append(tour[j])
+
+		return newTour
+		
