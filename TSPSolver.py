@@ -294,6 +294,8 @@ class TSPSolver:
 		results = {}
 
 		self.cities = self._scenario.getCities()
+		start = time.time()
+
 		# get MST using Prim's algorithm
 		mst = self.getMST(self.cities)
 
@@ -301,17 +303,33 @@ class TSPSolver:
 		oddDegNodes = self.getOddDegreeNodes(mst)
 
 		# get minimum weight perfect matching
+		# TODO: implement
+		matching = self.getMatching(oddDegNodes)
 
 		# get Eulerian tour
+		eulerianTour = self.eulerianTour(matching)
 
 		# get Hamiltonian tour
+		# TODO: implement
+		hamiltonianTour = self.getHamiltonianTour(tour)
 
+		end = time.time()
+
+		tour = TSPSolution(hamiltonianTour)
+		results['cost'] = tour.costOfRoute()
+		results['soln'] = tour
+		results['time'] = end - start
+		results['count'] = 1
+		results['max'] = 0
+		results['total'] = 0
+		results['pruned'] = 0
 		return results
 
-
-	# get MST using Prim's algorithm
-	# O(E logN) time and O(E) space, where E is the number of edges and N is the number of cities
-	def getMST(cities):
+	'''
+	get MST using Prim's algorithm
+	O(E logN) time and O(E) space, where E is the number of edges and N is the number of cities
+	'''
+	def getMST(self, cities):
 		# MST is an array of tuples (city1, city2, cost)
 		mst = []
 		numCities = len(cities)
@@ -339,11 +357,15 @@ class TSPSolver:
 
 		return mst
 
-	# Takes in a list of edges where each 
-	# edge is a tuple (index of start city, 
-	# index of destination city) and returns 
-	# a list of the city indexes that contain 
-	# an odd degree of edges. 
+	'''
+	Takes in a list of edges where each 
+	edge is a tuple (index of start city, 
+	index of destination city) and returns 
+	a list of the city indexes that contain 
+	an odd degree of edges. 
+	Time complexity: O(N-1 + N) = O(N) where N is number of cities
+	Space complexity: O(N) to store the degree for each city
+	'''
 	def getOddDegreeNodes(self, mst):
 		# Get the degrees for each node (city)
 		nodeDegrees = np.zeros(len(self._scenario.getCities()))
@@ -359,3 +381,56 @@ class TSPSolver:
 				oddDegreeNodes.append(index)
 
 		return oddDegreeNodes
+
+	# degreeCount(vertex,listOfEdges):
+    # degree = 0
+    # iterate through listOfEdges:
+        # if vertex is in edge:
+            # degree  += 1
+    # return degree
+	def degreeCount(self, vertex, listOfEdges):
+		degree = 0
+
+		for i in listOfEdges:
+			if vertex == i[0] or vertex == i[1]:
+				degree += 1
+
+		return degree
+
+
+	# Find Eulerian Tour
+    # add in odd edges to mst
+    # make stack
+    # put start vertex on stack
+    # while stack is not empty
+        # if degreeCount(vertex) == 0
+            # add vertex to tour
+            # pop vertex off stack
+        # else
+            # find any edge connected to V
+            # remove it from the graph
+            # put other vertex on removed edge on stack
+	def eulerianTour(self, oddEdges, mst):
+		for i in oddEdges:
+			mst.append(i)
+		stack = []
+		tour = []
+		mstCopy = deepcopy(mst)
+		stack.append(mst[0][0])
+		while len(stack) > 0:
+			topVertex = stack[-1]
+			topDegree = self.degreeCount(topVertex,mstCopy)
+			if topDegree == 0:
+				tour.append(stack.pop())
+			else:
+				for i in range(len(mstCopy)):
+					if topVertex == mstCopy[i][0]:
+						stack.append(mstCopy[i][1])
+						idEdge = i
+						break
+					elif topVertex == mstCopy[i][1]:
+						stack.append(mstCopy[i][0])
+						idEdge = i
+						break
+				mstCopy.pop(idEdge)
+		return tour
