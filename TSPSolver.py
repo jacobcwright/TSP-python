@@ -522,7 +522,6 @@ class TSPSolver:
 		bssf = None
 		self.cities = self._scenario.getCities()
 		self.numCities = len(self.cities)
-		# results = {}
 		solutions = 0
 
 		start = time.time()
@@ -568,6 +567,7 @@ class TSPSolver:
 		solutions = 1
 		
 		# 2-opt
+		# for i in range(100):
 		for i in range(numCities):
 			city1 = random.randint(0, numCities - 1)
 			city2 = random.randint(0, numCities - 1)
