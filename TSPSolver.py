@@ -25,17 +25,6 @@ class TSPSolver:
 	def setupWithScenario(self, scenario):
 		self._scenario = scenario
 
-
-	''' <summary>
-		This is the entry point for the default solver
-		which just finds a valid random tour.  Note this could be used to find your
-		initial BSSF.
-		</summary>
-		<returns>results dictionary for GUI that contains three ints: cost of solution, 
-		time spent to find solution, number of permutations tried during search, the 
-		solution found, and three null values for fields not used for this 
-		algorithm</returns> 
-	'''
 	# worst case O(n!) time and O(n) space
 	def defaultRandomTour(self, time_allowance=60.0):
 		results = {}
@@ -66,18 +55,6 @@ class TSPSolver:
 		results['total'] = None
 		results['pruned'] = None
 		return results
-
-	''' <summary>
-		This is the entry point for the greedy solver, which you must implement for 
-		the group project (but it is probably a good idea to just do it for the branch-and
-		bound project as a way to get your feet wet).  Note this could be used to find your
-		initial BSSF.
-		</summary>
-		<returns>results dictionary for GUI that contains three ints: cost of best solution, 
-		time spent to find best solution, total number of solutions found, the best
-		solution found, and three null values for fields not used for this 
-		algorithm</returns> 
-	'''
 
 	def greedy(self, time_allowance=60.0):
 		bssf = None
@@ -126,16 +103,6 @@ class TSPSolver:
 		
 		return min(cityCosts, key=cityCosts.get)
 
-
-	
-	''' <summary>
-		This is the entry point for the branch-and-bound algorithm that you will implement
-		</summary>
-		<returns>results dictionary for GUI that contains three ints: cost of best solution, 
-		time spent to find best solution, total number solutions found during search (does
-		not include the initial BSSF), the best solution found, and three more ints: 
-		max queue size, total number of states created, and number of pruned states.</returns> 
-	'''
 	# O(k*n^2) time and space where k is the number of states and n is the number of cities
 	# This is ignoring the time it takes to get the initial bssf from random tour.
 	def branchAndBound(self, time_allowance=60.0):
